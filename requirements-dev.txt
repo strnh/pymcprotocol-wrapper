@@ -1,0 +1,6 @@
+pymcprotocol==1.0.0
+pytest==7.0.0
+tox==3.24.0
+mypy==0.910
+black==21.12b0
+flake8==3.9.2
