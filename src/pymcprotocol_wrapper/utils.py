@@ -11,8 +11,11 @@ def validate_address(address):
     """
     Validate the PLC address format.
 
-    Supported format: a string starting with an uppercase `D` followed by one
-    or more digits, e.g. `D100`, `D0`, `D12345`.
+    Supported format: a string starting with an uppercase device code
+    (single ASCII letter, e.g. `D`, `W`, `X`, `Y`) followed by one or more
+    digits. The numeric portion represents a device number stored in 3
+    bytes (24-bit), so valid numeric values are in the range 0..16777215.
+    Examples: `D0`, `D100`, `D999999`, `W1234567`.
 
     Returns True when the format is correct, otherwise False.
     """
@@ -20,7 +23,14 @@ def validate_address(address):
         return False
     import re
 
-    return bool(re.fullmatch(r"D\d+", address))
+    # Device code: single uppercase ASCII letter, followed by 1-8 digits
+    # (allow up to 8 digits to cover the full 24-bit range: 0..16777215).
+    if not re.fullmatch(r"[A-Z]\d{1,8}", address):
+        return False
+
+    # Numeric range checked by callers where appropriate; here we simply
+    # validate the textual format.
+    return True
 
 
 def log_message(message):

@@ -39,19 +39,19 @@ class MockClient:
             log_message(f"MockClient.write_data: invalid address format: {address}")
             return
 
-        # Simulate address existence using 16-bit address space (0..65535).
+        # Simulate address existence using 24-bit address space (0..16777215).
         try:
             num = int(address[1:])
         except Exception:
             log_message(f"MockClient.write_data: could not parse numeric portion: {address}")
             return
 
-        if num < 0 or num > 0xFFFF:
-            # out of 16-bit range -> ignore
+        if num < 0 or num > 0xFFFFFF:
+            # out of 24-bit range -> ignore
             log_message(f"MockClient.write_data: address out of range: {address}")
             return
 
-        # Accept and store for any valid 16-bit address.
+        # Accept and store for any valid 24-bit address.
         self.data_store[address] = value
 
     def read_data(self, address: str):
@@ -75,7 +75,7 @@ class MockClient:
             log_message(f"MockClient.read_data: could not parse numeric portion: {address}")
             return None
 
-        if num < 0 or num > 0xFFFF:
+        if num < 0 or num > 0xFFFFFF:
             log_message(f"MockClient.read_data: address out of range: {address}")
             return None
 
