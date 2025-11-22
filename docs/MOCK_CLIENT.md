@@ -37,6 +37,23 @@
 移行手順:
 - 既存テスト/コードを実機ライクにしたい場合、`MockClient(require_connection=True)` を生成し、`connect()` を呼ぶようにしてください（テストでは `setUp()` で `connect()` を呼ぶのが推奨）。
 
+## ロギング設定の例
+`pymcprotocol_wrapper` は内部で `logging.getLogger('pymcprotocol_wrapper')` を利用しています。簡単にコンソールにデバッグ出力を出したい場合、アプリケーションの起動時に次を呼んでください:
+
+```python
+from pymcprotocol_wrapper import configure_debug_console
+
+configure_debug_console()  # 出力は DEBUG レベルでコンソールへ
+
+# あるいは好みのレベルで
+from pymcprotocol_wrapper import configure_logging
+import logging
+
+configure_logging(level=logging.INFO)
+```
+
+この設定により、`MockClient` や `Client` の内部で `log_message()` を呼んだ際にコンソールへログが出力されます。
+
 
 ## 「接続必須モード」導入案（要検討）
 オプションとして `MockClient(require_connection: bool = False)` を追加し、`require_connection=True` のときは `connect()` を呼んでいない状態では `read_data`/`write_data` が例外を投げるか、何も行わない設計にできます。
