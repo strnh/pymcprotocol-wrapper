@@ -1,0 +1,24 @@
+# Cirrus CI configuration: run tests on FreeBSD 14 with Python 3.11
+#
+# Note: This is a practical configuration that installs Python 3.11 on FreeBSD
+# and runs the existing test suite. Adjust `platform` or package names if your
+# target FreeBSD image differs.
+
+task:
+  name: FreeBSD 14 - Python 3.11
+  platform: freebsd-14
+  # Cache pkg downloads and pip cache between runs to speed up CI
+  cache_directories:
+    - /usr/ports/distfiles
+    - /root/.cache/pip
+  env:
+    PYTHON: python3.11
+  script:
+    - sudo pkg update -f
+    - sudo pkg install -y python311 py311-pip git
+    - $PYTHON -m venv .venv
+    - . .venv/bin/activate
+    - python -m pip install --upgrade pip setuptools wheel
+    - pip install -r requirements-dev.txt
+    - pip install -e .
+    - pytest -q
