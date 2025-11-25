@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: [3.10, 3.11]
+        python-version: [3.11, 3.12]
         pmc-version: ["0.3.0", "latest"]
     steps:
       - uses: actions/checkout@v4
@@ -31,18 +31,50 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
 
-      - name: Install package (editable)
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -e .
-
-      - name: Install target pymcprotocol
+      - name: Install target pymcprotocol (Linux/macOS)
+        if: runner.os != 'Windows'
         run: |
           if [ "${{ matrix.pmc-version }}" = "latest" ]; then
             pip install -U pymcprotocol
           else
             pip install "pymcprotocol==${{ matrix.pmc-version }}"
           fi
+
+      - name: Install target pymcprotocol (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if ('${{ matrix.pmc-version }}' -eq 'latest') {
+            pip install -U pymcprotocol
+          } else {
+            pip install "pymcprotocol==${{ matrix.pmc-version }}"
+          }
+
+      - name: Install package (editable, no deps) (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e . --no-deps
+
+      - name: Install package (editable, no deps) (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e . --no-deps
+
+      - name: Install test dependencies (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      - name: Install test dependencies (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
 
       - name: Run tests
         run: |
