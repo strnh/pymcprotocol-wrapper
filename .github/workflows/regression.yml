@@ -31,18 +31,37 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
 
-      - name: Install package (editable)
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -e .
-
-      - name: Install target pymcprotocol
+      - name: Install target pymcprotocol (Linux/macOS)
+        if: runner.os != 'Windows'
         run: |
           if [ "${{ matrix.pmc-version }}" = "latest" ]; then
             pip install -U pymcprotocol
           else
             pip install "pymcprotocol==${{ matrix.pmc-version }}"
           fi
+
+      - name: Install target pymcprotocol (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if ('${{ matrix.pmc-version }}' -eq 'latest') {
+            pip install -U pymcprotocol
+          } else {
+            pip install "pymcprotocol==${{ matrix.pmc-version }}"
+          }
+
+      - name: Install package (editable, no deps) (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e . --no-deps
+
+      - name: Install package (editable, no deps) (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e . --no-deps
 
       - name: Run tests
         run: |
