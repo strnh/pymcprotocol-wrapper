@@ -1,0 +1,45 @@
+name: Regression - pymcprotocol compatibility
+
+on:
+  push: {}
+  pull_request: {}
+  schedule:
+    - cron: '0 3 * * 6' # Saturday 03:00 UTC == Saturday 12:00 JST
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.10, 3.11]
+        pmc-version: ["0.3.0", "latest"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+
+      - name: Install package (editable)
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e .
+
+      - name: Install target pymcprotocol
+        run: |
+          if [ "${{ matrix.pmc-version }}" = "latest" ]; then
+            pip install -U pymcprotocol
+          else
+            pip install "pymcprotocol==${{ matrix.pmc-version }}"
+          fi
+
+      - name: Run tests
+        run: |
+          pytest -q
