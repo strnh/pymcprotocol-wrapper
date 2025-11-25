@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "pymcprotocol-wrapper"
-version = "0.1.0"
+version = "0.1.1"
 description = "A wrapper around the pymcprotocol library for easier testing and development."
 authors = ["Sotaro Hikosaka <hikosakam@crew.ne.jp>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.7"
-pymcprotocol = "^0.2.0"
+python = "^3.11"
+pymcprotocol = "^0.3.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0"
