@@ -185,9 +185,9 @@ class MockClient:
             return
         
         for i, value in enumerate(values):
-            addr = f"{device_type}{start_num + i}"
             num = start_num + i
             if 0 <= num <= 0xFFFFFF:
+                addr = f"{device_type}{num}"
                 self.data_store[addr] = value
 
     def batchwrite_bitunits(self, headdevice: str, values: list):
@@ -213,9 +213,9 @@ class MockClient:
             return
         
         for i, value in enumerate(values):
-            addr = f"{device_type}{start_num + i}"
             num = start_num + i
             if 0 <= num <= 0xFFFFFF:
+                addr = f"{device_type}{num}"
                 self.data_store[addr] = 1 if value else 0
 
     def randomread(self, word_devices: list | None = None, dword_devices: list | None = None):

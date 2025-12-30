@@ -84,14 +84,18 @@ class Client:
         starting with `D1` or `D2` are considered valid (other addresses are
         treated as non-existent and write is ignored), which matches the
         expectations in the test-suite.
+        
+        This is a simplified convenience method - for external clients it uses
+        batchwrite_wordunits with a single value.
         """
         from .utils import validate_address, log_message
 
         if self._external_client:
             try:
-                return self._external_client.write(address, value)
-            except Exception:
-                log_message(f"external write failed for {address}")
+                # Use batchwrite_wordunits for single value write
+                return self._external_client.batchwrite_wordunits(address, [value])
+            except Exception as e:
+                log_message(f"external write failed for {address}: {e}")
                 pass
 
         # Validate address format first
@@ -109,14 +113,19 @@ class Client:
 
         If an external client exists, delegate to it. Otherwise return from
         the in-process store. Invalid address formats return None.
+        
+        This is a simplified convenience method - for external clients it uses
+        batchread_wordunits with readsize=1.
         """
         from .utils import validate_address, log_message
 
         if self._external_client:
             try:
-                return self._external_client.read(address)
-            except Exception:
-                log_message(f"external read failed for {address}")
+                # Use batchread_wordunits for single value read
+                values = self._external_client.batchread_wordunits(address, 1)
+                return values[0] if values else None
+            except Exception as e:
+                log_message(f"external read failed for {address}: {e}")
                 pass
 
         if not validate_address(address):
@@ -265,8 +274,10 @@ class Client:
             return
         
         for i, value in enumerate(values):
-            addr = f"{device_type}{start_num + i}"
-            self._data_store[addr] = value
+            num = start_num + i
+            if 0 <= num <= 0xFFFFFF:
+                addr = f"{device_type}{num}"
+                self._data_store[addr] = value
 
     def batchwrite_bitunits(self, headdevice: str, values: list):
         """Write consecutive bit units to PLC (pymcprotocol compatible method).
@@ -296,9 +307,11 @@ class Client:
             return
         
         for i, value in enumerate(values):
-            addr = f"{device_type}{start_num + i}"
-            # Store as 0 or 1
-            self._data_store[addr] = 1 if value else 0
+            num = start_num + i
+            if 0 <= num <= 0xFFFFFF:
+                addr = f"{device_type}{num}"
+                # Store as 0 or 1
+                self._data_store[addr] = 1 if value else 0
 
     def randomread(self, word_devices: list | None = None, dword_devices: list | None = None):
         """Read non-consecutive devices from PLC (pymcprotocol compatible method).
@@ -376,11 +389,21 @@ class Client:
         # Mock implementation
         for addr, value in zip(word_devices, word_values):
             if validate_address(addr):
-                self._data_store[addr] = value
+                try:
+                    num = int(addr[1:])
+                    if 0 <= num <= 0xFFFFFF:
+                        self._data_store[addr] = value
+                except ValueError:
+                    pass
         
         for addr, value in zip(dword_devices, dword_values):
             if validate_address(addr):
-                self._data_store[addr] = value
+                try:
+                    num = int(addr[1:])
+                    if 0 <= num <= 0xFFFFFF:
+                        self._data_store[addr] = value
+                except ValueError:
+                    pass
 
     def randomwrite_bitunits(self, bit_devices: list, values: list):
         """Write non-consecutive bit devices to PLC (pymcprotocol compatible method).
@@ -401,7 +424,12 @@ class Client:
         # Mock implementation
         for addr, value in zip(bit_devices, values):
             if validate_address(addr):
-                self._data_store[addr] = 1 if value else 0
+                try:
+                    num = int(addr[1:])
+                    if 0 <= num <= 0xFFFFFF:
+                        self._data_store[addr] = 1 if value else 0
+                except ValueError:
+                    pass
 
     def read_cputype(self):
         """Read PLC CPU type (pymcprotocol compatible method).
